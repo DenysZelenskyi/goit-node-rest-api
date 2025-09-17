@@ -5,15 +5,16 @@ import {
   deleteContact,
   createContact,
   updateContact,
+  updateStatusContact,
 } from "../controllers/contactsControllers.js";
+
+const contactsRouter = express.Router();
 
 import validateBody from "../helpers/validateBody.js";
 import {
   createContactSchema,
   updateContactSchema,
 } from "../schemas/contactsSchemas.js";
-
-const contactsRouter = express.Router();
 
 contactsRouter.get("/", getAllContacts);
 
@@ -24,5 +25,7 @@ contactsRouter.delete("/:id", deleteContact);
 contactsRouter.post("/", validateBody(createContactSchema), createContact);
 
 contactsRouter.put("/:id", validateBody(updateContactSchema), updateContact);
+
+contactsRouter.patch("/:id/favorite", updateStatusContact);
 
 export default contactsRouter;
