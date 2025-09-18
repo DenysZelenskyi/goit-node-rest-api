@@ -1,7 +1,15 @@
 import { Contact } from "../models/Contact.js";
 
-export async function listContacts() {
-  return Contact.findAll();
+export async function listContacts({
+  offset = 0,
+  limit = 20,
+  filter = {},
+} = {}) {
+  return Contact.findAndCountAll({
+    where: filter,
+    offset,
+    limit,
+  });
 }
 
 export async function getContactById(contactId) {

@@ -5,6 +5,7 @@ import cors from "cors";
 import authRouter from "./routes/authRouter.js";
 import contactsRouter from "./routes/contactsRouter.js";
 import { connectToDatabase, sequelize } from "./db/connection.js";
+import "./models/User.js";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.use((err, req, res, next) => {
 
 const startServer = async () => {
   await connectToDatabase();
+  await sequelize.sync();
   app.listen(3000, () => {
     console.log("Server is running. Use our API on port: 3000");
   });
