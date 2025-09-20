@@ -1,7 +1,12 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-import { User } from "../models/User.js";
+import {
+  findUserByEmail,
+  createUser,
+  updateUserToken,
+  clearUserToken,
+} from "../services/authServices.js";
 import HttpError from "../helpers/HttpError.js";
 import dotenv from "dotenv";
 dotenv.config();
@@ -15,14 +20,14 @@ export const register = async (req, res, next) => {
       throw HttpError(400, "Missing required fields");
     }
 
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await findUserByEmail(email);
     if (existingUser) {
       throw HttpError(409, "Email in use");
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = await User.create({
+    const newUser = await createUser({
       email,
       password: hashedPassword,
     });
@@ -46,7 +51,7 @@ export const login = async (req, res, next) => {
       throw HttpError(400, "Missing required fields");
     }
 
-    const user = await User.findOne({ where: { email } });
+    const user = await findUserByEmail(email);
     if (!user) {
       throw HttpError(401, "Email or password is wrong");
     }
@@ -58,8 +63,7 @@ export const login = async (req, res, next) => {
 
     const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "24h" });
 
-    user.token = token;
-    await user.save();
+    await updateUserToken(user, token);
 
     res.json({
       token,
@@ -81,8 +85,7 @@ export const logout = async (req, res, next) => {
       throw HttpError(401, "Not authorized");
     }
 
-    user.token = null;
-    await user.save();
+    await clearUserToken(user);
 
     res.status(204).send();
   } catch (error) {

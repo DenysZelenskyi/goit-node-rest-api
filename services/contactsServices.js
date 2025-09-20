@@ -12,12 +12,12 @@ export async function listContacts({
   });
 }
 
-export async function getContactById(contactId) {
-  return Contact.findByPk(contactId);
+export async function getContactById(contactId, ownerId) {
+  return Contact.findOne({ where: { id: contactId, owner: ownerId } });
 }
 
-export async function removeContact(contactId) {
-  const contact = await getContactById(contactId);
+export async function removeContact(contactId, ownerId) {
+  const contact = await getContactById(contactId, ownerId);
   if (!contact) {
     return null;
   }
@@ -29,8 +29,8 @@ export async function addContact(payload) {
   return Contact.create(payload);
 }
 
-export async function updateContactService(id, payload) {
-  const contact = await getContactById(id);
+export async function updateContactService(id, ownerId, payload) {
+  const contact = await getContactById(id, ownerId);
   if (!contact) {
     return null;
   }
@@ -38,8 +38,8 @@ export async function updateContactService(id, payload) {
   return contact;
 }
 
-export async function updateStatusContact(id, favorite) {
-  const contact = await getContactById(id);
+export async function updateStatusContact(id, ownerId, favorite) {
+  const contact = await getContactById(id, ownerId);
   if (!contact) {
     return null;
   }

@@ -14,7 +14,7 @@ export const getAllContacts = async (req, res) => {
     const pageNum = parseInt(page, 10) > 0 ? parseInt(page, 10) : 1;
     const limitNum = parseInt(limit, 10) > 0 ? parseInt(limit, 10) : 20;
     const offset = (pageNum - 1) * limitNum;
-    const filter = {};
+    const filter = { owner: req.user.id };
     if (favorite !== undefined) {
       filter.favorite = favorite === "true";
     }
@@ -35,70 +35,75 @@ export const getAllContacts = async (req, res) => {
   }
 };
 
-export const getOneContact = async (req, res) => {
+export const getOneContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const result = await getContactById(id);
+    const result = await getContactById(id, req.user.id);
     if (result === null) {
-      throw new createError.NotFound("User not found");
+      return next(new createError.NotFound("Contact not found"));
     }
     res.status(200).json({
       status: 200,
       data: result,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
-export const deleteContact = async (req, res) => {
+export const deleteContact = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const deletedUser = await removeContact(id);
+    const deletedContact = await removeContact(id, req.user.id);
 
-    if (deletedUser === null) {
-      throw new createError.NotFound("Not found");
+    if (deletedContact === null) {
+      return next(new createError.NotFound("Not found"));
     }
     res.status(200).json({
       status: 200,
       message: "Contact was deleted",
-      data: deletedUser,
+      data: deletedContact,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
-export const createContact = async (req, res) => {
+export const createContact = async (req, res, next) => {
   try {
-    const newUser = await addContact(req.body);
+    const contactData = { ...req.body, owner: req.user.id };
+    const newContact = await addContact(contactData);
     res.status(201).json({
       status: 201,
       message: "Contact was added successfully",
-      data: newUser,
+      data: newContact,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
-export const updateContact = async (req, res) => {
+export const updateContact = async (req, res, next) => {
   try {
-    const updatedUser = await updateContactService(req.params.id, req.body);
-    if (updatedUser === null) {
-      throw new createError.NotFound("User not found");
+    const updatedContact = await updateContactService(
+      req.params.id,
+      req.user.id,
+      req.body
+    );
+    if (updatedContact === null) {
+      return next(new createError.NotFound("Contact not found"));
     }
     res.status(200).json({
       status: 200,
       message: "Contact was updated successfully",
-      data: updatedUser,
+      data: updatedContact,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
 
-export const updateStatusContact = async (req, res) => {
+export const updateStatusContact = async (req, res, next) => {
   try {
     const { favorite } = req.body;
     if (typeof favorite !== "boolean") {
@@ -106,10 +111,11 @@ export const updateStatusContact = async (req, res) => {
     }
     const updatedStatus = await updateStatusContactService(
       req.params.id,
+      req.user.id,
       favorite
     );
     if (updatedStatus === null) {
-      throw new createError.NotFound("User not found");
+      return next(new createError.NotFound("Contact not found"));
     }
     res.status(200).json({
       status: 200,
@@ -117,6 +123,6 @@ export const updateStatusContact = async (req, res) => {
       data: updatedStatus,
     });
   } catch (error) {
-    throw error;
+    next(error);
   }
 };
