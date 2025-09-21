@@ -19,3 +19,14 @@ export async function clearUserToken(user) {
   await user.save();
   return user;
 }
+
+export async function findUserByVerificationToken(verificationToken) {
+  return User.findOne({ where: { verificationToken } });
+}
+
+export async function verifyUser(user) {
+  user.verify = true;
+  user.verificationToken = null;
+  await user.save();
+  return user;
+}

@@ -4,6 +4,8 @@ import {
   login,
   logout,
   getCurrent,
+  verifyEmail,
+  resendVerificationEmail,
 } from "../controllers/authControllers.js";
 import validateBody from "../helpers/validateBody.js";
 
@@ -19,6 +21,8 @@ import upload from "../middlewares/upload.js";
 import { updateAvatar } from "../controllers/authControllers.js";
 
 const authRouter = express.Router();
+
+authRouter.post("/verify", resendVerificationEmail);
 
 authRouter.patch(
   "/subscription",
@@ -48,5 +52,6 @@ authRouter.post("/register", validateBody(registerSchema), register);
 authRouter.post("/login", validateBody(loginSchema), login);
 authRouter.post("/logout", auth, logout);
 authRouter.get("/current", auth, getCurrent);
+authRouter.get("/verify/:verificationToken", verifyEmail);
 
 export default authRouter;
