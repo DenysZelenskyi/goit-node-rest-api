@@ -12,7 +12,11 @@ import {
   loginSchema,
   subscriptionSchema,
 } from "../schemas/authSchemas.js";
+
 import auth from "../middlewares/auth.js";
+import upload from "../middlewares/upload.js";
+
+import { updateAvatar } from "../controllers/authControllers.js";
 
 const authRouter = express.Router();
 
@@ -39,6 +43,7 @@ authRouter.patch(
   }
 );
 
+authRouter.patch("/avatars", auth, upload.single("avatar"), updateAvatar);
 authRouter.post("/register", validateBody(registerSchema), register);
 authRouter.post("/login", validateBody(loginSchema), login);
 authRouter.post("/logout", auth, logout);

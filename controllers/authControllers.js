@@ -1,3 +1,5 @@
+import fs from "fs/promises";
+import path from "path";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -7,10 +9,12 @@ import {
   updateUserToken,
   clearUserToken,
 } from "../services/authServices.js";
+import gravatar from "gravatar";
 import HttpError from "../helpers/HttpError.js";
 import dotenv from "dotenv";
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
+const avatarsDir = path.resolve("public", "avatars");
 
 export const register = async (req, res, next) => {
   try {
@@ -26,16 +30,19 @@ export const register = async (req, res, next) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const avatarURL = gravatar.url(email, { s: "250", d: "retro" }, true);
 
     const newUser = await createUser({
       email,
       password: hashedPassword,
+      avatarURL,
     });
 
     res.status(201).json({
       user: {
         email: newUser.email,
         subscription: newUser.subscription,
+        avatarURL: newUser.avatarURL,
       },
     });
   } catch (error) {
@@ -70,6 +77,7 @@ export const login = async (req, res, next) => {
       user: {
         email: user.email,
         subscription: user.subscription,
+        avatarURL: user.avatarURL,
       },
     });
   } catch (error) {
@@ -100,7 +108,27 @@ export const getCurrent = async (req, res, next) => {
     res.json({
       email: user.email,
       subscription: user.subscription,
+      avatarURL: user.avatarURL,
     });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const updateAvatar = async (req, res, next) => {
+  try {
+    const { file, user } = req;
+    if (!file) {
+      throw HttpError(400, "Avatar file is required");
+    }
+    const ext = path.extname(file.originalname);
+    const fileName = `${user.id}_${Date.now()}${ext}`;
+    const destPath = path.join(avatarsDir, fileName);
+    await fs.rename(file.path, destPath);
+    const avatarURL = `/avatars/${fileName}`;
+    user.avatarURL = avatarURL;
+    await user.save();
+    res.json({ avatarURL });
   } catch (error) {
     next(error);
   }

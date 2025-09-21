@@ -13,6 +13,8 @@ app.use(morgan("tiny"));
 app.use(cors());
 app.use(express.json());
 
+app.use(express.static("public"));
+
 app.use("/api/auth", authRouter);
 app.use("/api/contacts", contactsRouter);
 
@@ -27,14 +29,10 @@ app.use((err, req, res, next) => {
 
 const startServer = async () => {
   await connectToDatabase();
-  await sequelize.sync();
+  await sequelize.sync({ alter: true });
   app.listen(3000, () => {
     console.log("Server is running. Use our API on port: 3000");
   });
 };
 
 startServer();
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiaWF0IjoxNzU4MzM5MTkwLCJleHAiOjE3NTg0MjU1OTB9.Ly2mUWtuji65QKUQtCh9rJf2cK0xzXMcmhjZQuCJCfg;
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiaWF0IjoxNzU4MzM5MjQzLCJleHAiOjE3NTg0MjU2NDN9.sSLp1l_79Y7ZkLhx6tBcJ7GVl7nO7cad0_0RF - LXAck;
